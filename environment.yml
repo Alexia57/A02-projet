@@ -1,4 +1,4 @@
-name: ift6758-conda-env
+name: ift6758-projet
 channels:
   - conda-forge
 dependencies:
