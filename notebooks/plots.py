@@ -111,7 +111,7 @@ def plot_but_distance(df):
 #### 4 plots demandés régulièrement  ####
 #########################################
 
-def plot_roc_auc(models, X_list, y, nom_models):
+def plot_roc_auc(models, X_list, y_list, nom_models):
     """
     Calcule les probabilités prédites, la courbe ROC et l'AUC, puis trace les courbes ROC pour plusieurs modèles.
     params:  models, X_list, y, nom_models
@@ -119,9 +119,10 @@ def plot_roc_auc(models, X_list, y, nom_models):
     """
     plt.figure(figsize=(8, 6))
     
-    for model, X, nom_model in zip(models, X_list, nom_models):
+    for model, X, y, nom_model in zip(models, X_list, y_list, nom_models):
         # probabilités prédites
         if model is None:  # cas random
+            y = y_list[0]
             y_prob = np.random.rand(len(y))
         else:
             y_prob = model.predict_proba(X)[:, 1]
@@ -145,7 +146,7 @@ def plot_roc_auc(models, X_list, y, nom_models):
     plt.show()
 
 
-def plot_taux_buts_par_centile(models, X_list, y, nom_models):
+def plot_taux_buts_par_centile(models, X_list, y_list, nom_models):
     """
     Cette fonction trace la courbe du taux de buts par rapport au centile de probabilité pour plusieurs modèles.
     params:  models, X_list, y, nom_models
@@ -154,9 +155,10 @@ def plot_taux_buts_par_centile(models, X_list, y, nom_models):
     plt.figure()
     sns.set()
 
-    for model, X, nom_model in zip(models, X_list, nom_models):
+    for model, X, y, nom_model in zip(models, X_list, y_list, nom_models):
         # probabilités prédites
         if model is None:  # cas random
+            y = y_list[0]
             y_prob = np.random.rand(len(y))
         else:
             y_prob = model.predict_proba(X)[:, 1]
@@ -200,16 +202,17 @@ def plot_taux_buts_par_centile(models, X_list, y, nom_models):
     plt.show()
 
 
-def cumulative_goal_rate(models, X_list, y, model_names):
+def cumulative_goal_rate(models, X_list, y_list, model_names):
     """
     Proportion cumulée de buts vs percentile de probabilité pour plusieurs modèles
     """
     plt.figure(figsize=(8, 6))
     sns.set()
 
-    for model, X, model_name in zip(models, X_list, model_names):
+    for model, X, y, model_name in zip(models, X_list, y_list, model_names):
         # probabilités prédites
         if model is None:  # cas random
+            y = y_list[0]
             prob_predict = np.random.rand(len(y))
         else:
             prob_predict = model.predict_proba(X)[:, 1]
@@ -240,16 +243,17 @@ def cumulative_goal_rate(models, X_list, y, model_names):
     plt.show()
 
 
-def plot_calibration_curve(models, X_list, y, model_names):
+def plot_calibration_curve(models, X_list, y_list, model_names):
     """
     Courbe de calibration pour plusieurs modèles sur le même graphique.
     """
     colors = ['blue', 'red', 'orange', 'green']  # Ajoutez plus de couleurs si nécessaire
     plt.figure(figsize=(10, 6))
     
-    for model, X, model_name, color in zip(models, X_list, model_names, colors):
+    for model, X, y, model_name, color in zip(models, X_list, y_list, model_names, colors):
         # probabilités prédites
         if model is None:  # cas random
+            y = y_list[0]
             prob_predict = np.random.rand(len(y))
         else:
             prob_predict = model.predict_proba(X)[:, 1]
