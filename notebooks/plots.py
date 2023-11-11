@@ -17,10 +17,7 @@ def plot_shot_by_distance(data):
     histogramme des tirs regroupés par distance
     """
     plt.figure(figsize=(10, 6))
-
     sns.histplot(data, x='distanceToNet', hue='isGoal', multiple='stack', bins=50, palette=['tomato', 'springgreen'], edgecolor='white')
-
-    # titres et des légendes
     plt.title('Histogramme des tirs regroupés par distance')
     plt.xlabel('Distance au filet')
     plt.ylabel('Nombre de tirs')
@@ -34,14 +31,9 @@ def plot_stacked_histogram(data, column, bins=70, alpha=0.5, title='', xlabel=''
     histogramme des tirs regroupés par angle
     """
     plt.figure(figsize=(10, 6))
-
     sns.histplot(data, x=column, hue='isGoal', multiple='stack', bins=bins, palette=['red', 'green'], edgecolor='white', alpha=alpha)
-
     plt.xticks(np.arange(-100,101, 20))
     plt.xlim(-100, 100)
-
-    # titres et des légendes
-
     plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
@@ -62,7 +54,6 @@ def plot_dist_angle(df, x_column, y_column):
     ax.ax_joint.set_xlabel(f"{x_column.capitalize()}")
     ax.ax_joint.set_ylabel(f"{y_column.capitalize()}")
     
-    # titre
     plt.subplots_adjust(top=0.9)
     plt.suptitle(f"Histogramme 2D de {x_column.capitalize()} et {y_column.capitalize()}")
     
@@ -104,13 +95,11 @@ def plot_but_distance(df):
 
     ax2 = ax1.twinx()  # 2e axe y partageant le même x
 
-    color = 'tab:blue'
     ax2.set_ylabel('Nombre de buts - Filet vide', color='red')
     ax2.hist(but_events[but_events['emptyNet'] == 1]['distanceToNet'], bins=20, alpha=0.5, label='Filet vide', color='red', edgecolor='white')
     ax2.tick_params(axis='y', labelcolor='red')
     ax2.legend(loc='upper right')
 
-    # titre
     plt.title("Histogramme des buts classés par distance")
 
     plt.show()
@@ -128,20 +117,19 @@ def plot_roc_auc(model, X, y, nom_model):
     params:  model, X, y, nom_model
     return:  None (affiche la courbe ROC)
     """
-    # Calculer les probabilités prédites
-    if model is None:
-        y_prob = y
+    # probabilités prédites
+    if model is None: # cas random
+        y_prob = np.random.rand(len(y))
     else:
-        # Calculer les probabilités prédites
         y_prob = model.predict_proba(X)[:, 1]
 
-    # Calculer la courbe ROC
+    # courbe ROC
     fpr, tpr, thresholds = roc_curve(y, y_prob)
 
-    # Calculer l'AUC
+    # AUC
     auc_value = roc_auc_score(y, y_prob)
 
-    # Tracer la courbe ROC
+    # Graphique
     plt.figure(figsize=(8, 6))
     plt.plot(fpr, tpr, label= nom_model + f' AUC = {auc_value:.2f}')
     plt.plot([0, 1], [0, 1], 'k--')
@@ -158,7 +146,6 @@ def plot_taux_buts_par_centile(prob_pred, y_valide, model_name):
     params:  prob_pred, y_valide
     return:  fig_taux_buts
     """
-    # Convertir les prédictions en une série 1D
     y_series = np.array(y_valide)
     y_series = np.reshape(y_series, (y_series.shape[0]))
 
@@ -168,12 +155,10 @@ def plot_taux_buts_par_centile(prob_pred, y_valide, model_name):
     percentiles = [[np.percentile(prob_pred, i), np.percentile(prob_pred, i+5)] for i in range(0, 100, 5)]
     total_buts = np.sum(y_series)
 
-    # Boucler sur les probabilités pour vérifier leurs percentiles avec leur statut (but/tir)
+    # On vérifie les percentiles des probas avec leur statut (but/tir)
     taux_buts = []
     for i in range(len(percentiles)):
-        # Vérifier l'intervalle de probabilité dans le centile et calculer le nombre de buts
         buts = prob_vraies[(prob_pred <= percentiles[i][1]) & (prob_pred > percentiles[i][0]) & (prob_vraies['cible_vraie'] == 1)].shape[0]
-        # Vérifier l'intervalle de probabilité dans le centile et calculer le nombre de tirs (ou non-buts)
         non_buts = prob_vraies[(prob_pred <= percentiles[i][1]) & (prob_pred > percentiles[i][0]) & (prob_vraies['cible_vraie'] == 0)].shape[0]
         # Si pas de but, ne rien faire, calculer la formule si but
         if buts == 0:
@@ -181,10 +166,9 @@ def plot_taux_buts_par_centile(prob_pred, y_valide, model_name):
         else:
             taux_buts.append((buts * 100) / (buts + non_buts))
 
-    # Axe pour le centile
     centile_prob_modele = np.arange(0, 100, 5)
 
-    # Tracé du taux de buts par rapport au centile de probabilité du modèle
+    # Graphique
     plt.figure()
     sns.set()
     plt.plot(centile_prob_modele, taux_buts, label=model_name)
@@ -219,6 +203,7 @@ def cumulative_goal_rate(model, X_val, y_val, model_name):
     
     percentiles = 100 - percentiles[::-1]
     
+    # Graphique
     plt.figure(figsize=(8, 6))
     sns.set()
     plt.plot(percentiles, cumulative_goal, linestyle='-', linewidth=2.0, label=model_name)
@@ -246,6 +231,7 @@ def plot_calibration_curve(model, X_validation, y_validation):
     # Objet CalibrationDisplay
     calibration_display = CalibrationDisplay.from_estimator(model, X_validation, y_validation, n_bins=10)
 
+    # Graphique
     plt.figure(figsize=(10, 6))
     calibration_display.plot()
     plt.title('Courbe de Calibration')
