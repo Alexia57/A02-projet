@@ -129,7 +129,11 @@ def plot_roc_auc(model, X, y, nom_model):
     return:  None (affiche la courbe ROC)
     """
     # Calculer les probabilités prédites
-    y_prob = model.predict_proba(X)[:, 1]
+    if model is None:
+        y_prob = y
+    else:
+        # Calculer les probabilités prédites
+        y_prob = model.predict_proba(X)[:, 1]
 
     # Calculer la courbe ROC
     fpr, tpr, thresholds = roc_curve(y, y_prob)
