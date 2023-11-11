@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from sklearn.metrics import accuracy_score, roc_curve, roc_auc_score, confusion_matrix
+from sklearn.calibration import CalibrationDisplay
+from sklearn.calibration import calibration_curve
 
 
 #########################################
@@ -179,7 +181,7 @@ def plot_taux_buts_par_centile(prob_pred, y_valide, model_name):
     centile_prob_modele = np.arange(0, 100, 5)
 
     # Tracé du taux de buts par rapport au centile de probabilité du modèle
-    fig_taux_buts = plt.figure()
+    plt.figure()
     sns.set()
     plt.plot(centile_prob_modele, taux_buts, label=model_name)
     plt.xlim(100, 0)
@@ -192,6 +194,55 @@ def plot_taux_buts_par_centile(prob_pred, y_valide, model_name):
     y_valeurs = ['0%', '10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%']
     plt.yticks(y_axe, y_valeurs)
     plt.legend()
-    return fig_taux_buts
+
+    plt.show
 
 
+def cumulative_goal_rate(model, X_val, y_val, model_name):
+    """
+    Proportion cumulée de buts vs percentile de probabilité
+    """
+    prob_predict = model.predict_proba
+    y_val = y_val.copy()
+    goal_probas = prob_predict(X_val)[:, 1]
+    percentiles = np.arange(0, 101)  
+    cumulative_goal = []
+    for perc in percentiles:
+        threshold = np.percentile(goal_probas, perc)
+        predicted_goals = goal_probas >= threshold
+        cumulative_goal_proportion = np.sum(y_val[predicted_goals])/ np.sum(y_val)
+        cumulative_goal.append(cumulative_goal_proportion)
+    
+    percentiles = 100 - percentiles[::-1]
+    
+    plt.figure(figsize=(8, 6))
+    sns.set()
+    plt.plot(percentiles, cumulative_goal, linestyle='-', linewidth=2.0, label=model_name)
+    plt.xlabel('Centile de probabilité du modèle')
+    plt.ylabel('Proportion cumulée')
+    plt.title('Proportion cumulée de buts vs percentile de probabilité')
+    plt.xlim(100, 0)
+    plt.ylim(0, 100)
+    plt.ylim(top=1)
+    plt.xticks([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])    
+    plt.grid()
+    plt.legend()
+    plt.show()
+
+
+def plot_calibration_curve(model, X_validation, y_validation):
+    """
+    courbe de calibration
+    """
+    y_prob = model.predict_proba(X_validation)[:, 1]
+
+    # Courbe de calibration
+    prob_true, prob_pred = calibration_curve(y_validation, y_prob, n_bins=10, strategy='uniform')
+
+    # Objet CalibrationDisplay
+    calibration_display = CalibrationDisplay.from_estimator(model, X_validation, y_validation, n_bins=10)
+
+    plt.figure(figsize=(10, 6))
+    calibration_display.plot()
+    plt.title('Courbe de Calibration')
+    plt.show()
