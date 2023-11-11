@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from sklearn.metrics import accuracy_score, roc_curve, roc_auc_score, confusion_matrix
-from sklearn.calibration import CalibrationDisplay
-from sklearn.calibration import calibration_curve
+from sklearn.calibration import CalibrationDisplay, calibration_curve, CalibratedClassifierCV
+
 
 
 #########################################
@@ -111,67 +111,81 @@ def plot_but_distance(df):
 #### 4 plots demandés régulièrement  ####
 #########################################
 
-def plot_roc_auc(model, X, y, nom_model):
+def plot_roc_auc(models, X_list, y, nom_models):
     """
-    calcule les probabilités prédites, la courbe ROC et l'AUC, puis trace la courbe ROC.
-    params:  model, X, y, nom_model
-    return:  None (affiche la courbe ROC)
+    Calcule les probabilités prédites, la courbe ROC et l'AUC, puis trace les courbes ROC pour plusieurs modèles.
+    params:  models, X_list, y, nom_models
+    return:  None (affiche les courbes ROC)
     """
-    # probabilités prédites
-    if model is None: # cas random
-        y_prob = np.random.rand(len(y))
-    else:
-        y_prob = model.predict_proba(X)[:, 1]
-
-    # courbe ROC
-    fpr, tpr, thresholds = roc_curve(y, y_prob)
-
-    # AUC
-    auc_value = roc_auc_score(y, y_prob)
-
-    # Graphique
     plt.figure(figsize=(8, 6))
-    plt.plot(fpr, tpr, label= nom_model + f' AUC = {auc_value:.2f}')
-    plt.plot([0, 1], [0, 1], 'k--')
+    
+    for model, X, nom_model in zip(models, X_list, nom_models):
+        # probabilités prédites
+        if model is None:  # cas random
+            y_prob = np.random.rand(len(y))
+        else:
+            y_prob = model.predict_proba(X)[:, 1]
+
+        # courbe ROC
+        fpr, tpr, thresholds = roc_curve(y, y_prob)
+
+        # AUC
+        auc_value = roc_auc_score(y, y_prob)
+
+        # Tracer la courbe ROC
+        plt.plot(fpr, tpr, label=nom_model + f' AUC = {auc_value:.2f}', linewidth=2, linestyle='--')
+
+    
+    plt.plot([0, 1], [0, 1], 'k--') # ligne en pointillés diagonale
     plt.xlabel('Taux de faux positifs')
     plt.ylabel('Taux de vrais positifs')
     plt.title('Courbe ROC')
     plt.legend(loc='lower right')
+    
     plt.show()
 
 
-def plot_taux_buts_par_centile(prob_pred, y_valide, model_name):
+def plot_taux_buts_par_centile(models, X_list, y, nom_models):
     """
-    Cette fonction trace la courbe du taux de buts par rapport au centile de probabilité du modèle.
-    params:  prob_pred, y_valide
-    return:  fig_taux_buts
+    Cette fonction trace la courbe du taux de buts par rapport au centile de probabilité pour plusieurs modèles.
+    params:  models, X_list, y, nom_models
+    return:  None (affiche les courbes)
     """
-    y_series = np.array(y_valide)
-    y_series = np.reshape(y_series, (y_series.shape[0]))
-
-    # Échelle des probabilités vraies (predict_proba() renvoie à la fois True et False)
-    prob_vraies = pd.DataFrame()
-    prob_vraies['cible_vraie'] = np.array(y_series)
-    percentiles = [[np.percentile(prob_pred, i), np.percentile(prob_pred, i+5)] for i in range(0, 100, 5)]
-    total_buts = np.sum(y_series)
-
-    # On vérifie les percentiles des probas avec leur statut (but/tir)
-    taux_buts = []
-    for i in range(len(percentiles)):
-        buts = prob_vraies[(prob_pred <= percentiles[i][1]) & (prob_pred > percentiles[i][0]) & (prob_vraies['cible_vraie'] == 1)].shape[0]
-        non_buts = prob_vraies[(prob_pred <= percentiles[i][1]) & (prob_pred > percentiles[i][0]) & (prob_vraies['cible_vraie'] == 0)].shape[0]
-        # Si pas de but, ne rien faire, calculer la formule si but
-        if buts == 0:
-            taux_buts.append(0)
-        else:
-            taux_buts.append((buts * 100) / (buts + non_buts))
-
-    centile_prob_modele = np.arange(0, 100, 5)
-
-    # Graphique
     plt.figure()
     sns.set()
-    plt.plot(centile_prob_modele, taux_buts, label=model_name)
+
+    for model, X, nom_model in zip(models, X_list, nom_models):
+        # probabilités prédites
+        if model is None:  # cas random
+            y_prob = np.random.rand(len(y))
+        else:
+            y_prob = model.predict_proba(X)[:, 1]
+
+        y_series = np.array(y)
+        y_series = np.reshape(y_series, (y_series.shape[0]))
+
+        # Échelle des probabilités vraies (predict_proba() renvoie à la fois True et False)
+        prob_vraies = pd.DataFrame()
+        prob_vraies['cible_vraie'] = np.array(y_series)
+        percentiles = [[np.percentile(y_prob, i), np.percentile(y_prob, i+5)] for i in range(0, 100, 5)]
+        total_buts = np.sum(y_series)
+
+        # On vérifie les percentiles des probas avec leur statut (but/tir)
+        taux_buts = []
+        for i in range(len(percentiles)):
+            buts = prob_vraies[(y_prob <= percentiles[i][1]) & (y_prob > percentiles[i][0]) & (prob_vraies['cible_vraie'] == 1)].shape[0]
+            non_buts = prob_vraies[(y_prob <= percentiles[i][1]) & (y_prob > percentiles[i][0]) & (prob_vraies['cible_vraie'] == 0)].shape[0]
+            # Si pas de but, ne rien faire, calculer la formule si but
+            if buts == 0:
+                taux_buts.append(0)
+            else:
+                taux_buts.append((buts * 100) / (buts + non_buts))
+
+        centile_prob_modele = np.arange(0, 100, 5)
+
+        # Graphique
+        plt.plot(centile_prob_modele, taux_buts, label=nom_model)
+
     plt.xlim(100, 0)
     plt.ylim(0, 100)
     plt.title("Taux de buts par rapport au centile de probabilité")
@@ -183,30 +197,37 @@ def plot_taux_buts_par_centile(prob_pred, y_valide, model_name):
     plt.yticks(y_axe, y_valeurs)
     plt.legend()
 
-    plt.show
+    plt.show()
 
 
-def cumulative_goal_rate(model, X_val, y_val, model_name):
+def cumulative_goal_rate(models, X_list, y, model_names):
     """
-    Proportion cumulée de buts vs percentile de probabilité
+    Proportion cumulée de buts vs percentile de probabilité pour plusieurs modèles
     """
-    prob_predict = model.predict_proba
-    y_val = y_val.copy()
-    goal_probas = prob_predict(X_val)[:, 1]
-    percentiles = np.arange(0, 101)  
-    cumulative_goal = []
-    for perc in percentiles:
-        threshold = np.percentile(goal_probas, perc)
-        predicted_goals = goal_probas >= threshold
-        cumulative_goal_proportion = np.sum(y_val[predicted_goals])/ np.sum(y_val)
-        cumulative_goal.append(cumulative_goal_proportion)
-    
-    percentiles = 100 - percentiles[::-1]
-    
-    # Graphique
     plt.figure(figsize=(8, 6))
     sns.set()
-    plt.plot(percentiles, cumulative_goal, linestyle='-', linewidth=2.0, label=model_name)
+
+    for model, X, model_name in zip(models, X_list, model_names):
+        # probabilités prédites
+        if model is None:  # cas random
+            prob_predict = np.random.rand(len(y))
+        else:
+            prob_predict = model.predict_proba(X)[:, 1]
+        y_val = y.copy()
+        goal_probas = prob_predict
+        percentiles = np.arange(0, 101)  
+        cumulative_goal = []
+        for perc in percentiles:
+            threshold = np.percentile(goal_probas, perc)
+            predicted_goals = goal_probas >= threshold
+            cumulative_goal_proportion = np.sum(y_val[predicted_goals])/ np.sum(y_val)
+            cumulative_goal.append(cumulative_goal_proportion)
+
+        percentiles = 100 - percentiles[::-1]
+
+        # Graphique
+        plt.plot(percentiles, cumulative_goal, linestyle='--', linewidth=2, label=model_name)
+
     plt.xlabel('Centile de probabilité du modèle')
     plt.ylabel('Proportion cumulée')
     plt.title('Proportion cumulée de buts vs percentile de probabilité')
@@ -219,20 +240,30 @@ def cumulative_goal_rate(model, X_val, y_val, model_name):
     plt.show()
 
 
-def plot_calibration_curve(model, X_validation, y_validation):
+def plot_calibration_curve(models, X_list, y, model_names):
     """
-    courbe de calibration
+    Courbe de calibration pour plusieurs modèles sur le même graphique.
     """
-    y_prob = model.predict_proba(X_validation)[:, 1]
-
-    # Courbe de calibration
-    prob_true, prob_pred = calibration_curve(y_validation, y_prob, n_bins=10, strategy='uniform')
-
-    # Objet CalibrationDisplay
-    calibration_display = CalibrationDisplay.from_estimator(model, X_validation, y_validation, n_bins=10)
-
-    # Graphique
+    colors = ['blue', 'red', 'orange', 'green']  # Ajoutez plus de couleurs si nécessaire
     plt.figure(figsize=(10, 6))
-    calibration_display.plot()
-    plt.title('Courbe de Calibration')
+    
+    for model, X, model_name, color in zip(models, X_list, model_names, colors):
+        # probabilités prédites
+        if model is None:  # cas random
+            prob_predict = np.random.rand(len(y))
+        else:
+            prob_predict = model.predict_proba(X)[:, 1]
+
+        # Courbe de calibration
+        prob_true, prob_pred = calibration_curve(y, prob_predict, n_bins=10, strategy='uniform')
+
+        # Créez l'objet CalibrationDisplay
+        disp = CalibrationDisplay.from_predictions(y, prob_predict, n_bins=10, label=model_name, ax=plt.gca(), color=color)
+
+    # Ajoutez des légendes et des titres
+    plt.ylabel("Fraction of positives (Positive class: 1)")
+    plt.title('Reliability curve')
+    plt.xlabel("Mean predicted probability (Positive class: 1)")
+    plt.legend()
+    plt.grid(linestyle='-')
     plt.show()
