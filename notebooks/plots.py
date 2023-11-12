@@ -265,9 +265,9 @@ def plot_calibration_curve(models, X_list, y_list, model_names):
         disp = CalibrationDisplay.from_predictions(y, prob_predict, n_bins=10, label=model_name, ax=plt.gca(), color=color)
 
     # Ajoutez des légendes et des titres
-    plt.ylabel("Fraction of positives (Positive class: 1)")
-    plt.title('Reliability curve')
-    plt.xlabel("Mean predicted probability (Positive class: 1)")
+    plt.ylabel("Fraction de positives (Positive classe : 1)")
+    plt.xlabel("Moyenne de proba prédite (Positive classe : 1)")
+    plt.title('Courbe de calibration')
     plt.legend()
     plt.grid(linestyle='-')
     plt.show()
