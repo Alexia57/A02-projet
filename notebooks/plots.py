@@ -60,19 +60,61 @@ def plot_dist_angle(df, x_column, y_column):
     plt.show()
 
 
-def plot_goal_rate_distance(df):
+'''def plot_goal_rate_distance(df, x_step=10):
     """
     Taux de but en fonction de la distance
     """
     df_groupby_distance = df.groupby(["distanceToNet"])["isGoal"].mean().to_frame().reset_index()
 
+    plt.figure(figsize=(16,6))
+
     ax = sns.lineplot(data=df_groupby_distance, x='distanceToNet', y='isGoal')
 
     plt.xlabel('Distance au filet')
     plt.ylabel('Taux de but')
-    plt.xticks(np.arange(0, 100, 10))
+    
+    plt.xticks(np.arange(0, 100, x_step))
     plt.yticks(np.arange(0, 1.1, 0.2))
     plt.title('Taux de but en fonction de la distance au filet')
+
+    plt.show()
+
+def plot_goal_rate_angle(df, x_step=10):
+    """
+    Taux de but en fonction de l'angle
+    """
+    df_groupby_angle = df.groupby([np.abs(df["relativeAngleToNet"])])["isGoal"].mean().to_frame().reset_index()
+
+    plt.figure(figsize=(16, 6))
+    
+    ax = sns.lineplot(data=df_groupby_angle, x='relativeAngleToNet', y='isGoal')
+
+    plt.xlabel('Angle au filet')
+    plt.ylabel('Taux de but')
+    
+    plt.xticks(np.arange(0, 190, x_step))
+    plt.yticks(np.arange(0, 1.1, 0.2))
+    plt.title('Taux de but en fonction de l\'angle au filet (valeur absolue)')
+
+    plt.show()'''
+
+def plot_goal_rate_binned(df, column, bins, x_label, x_step=1):
+    """
+    Taux de but en fonction d'une colonne avec binning
+    """
+    df_copy = df.copy()
+    df_copy['bin'] = pd.cut(df_copy[column], bins=bins)
+    df_groupby_bin = df_copy.groupby('bin')['isGoal'].mean().to_frame().reset_index()
+
+    plt.figure(figsize=(12, 6))
+    
+    ax = sns.barplot(data=df_groupby_bin, x='bin', y='isGoal')
+
+    plt.xlabel(x_label)
+    plt.ylabel('Taux de but')
+    plt.xticks(rotation=45, ha='right')
+
+    plt.title(f'Taux de but en fonction de {x_label} (Binned)')
 
     plt.show()
 
