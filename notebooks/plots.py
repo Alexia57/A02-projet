@@ -253,7 +253,7 @@ def plot_calibration_curve(models, X_list, y_list, model_names):
     """
     Courbe de calibration pour plusieurs modèles sur le même graphique.
     """
-    colors = ['blue', 'red', 'orange', 'green']  # Ajoutez plus de couleurs si nécessaire
+    colors = ['blue', 'red', 'orange', 'green', 'black', 'magenta'] 
     plt.figure(figsize=(10, 6))
     
     for model, X, y, model_name, color in zip(models, X_list, y_list, model_names, colors):
