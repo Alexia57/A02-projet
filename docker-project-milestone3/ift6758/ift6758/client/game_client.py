@@ -53,41 +53,25 @@ class GameClient:
         self.team_home_id = game_data['homeTeam']['id']
         self.team_away_id = game_data['awayTeam']['id']
 
+        # etc ...
+
         return self.game
 
 
     
     def clean_data(dir_path):
-    # define desirable features we want to cover
-    features_set = ['season','game date','period','period time','game id','home team','away team',
-                      'is goal','team shot','x shot', 'y shot','shooter','goalie',
-                      'shot type','empty net','strength','home goal','away goal','is rebound', 'rinkSide',
-                      'game seconds','last event type', 'x last event', 'y last event', 'time from last event',
-                      'num player home', 'num player away', 'time power play']
-
-    d = d[['gameId', 'period', 'timeInPeriod', 'typeDescKey', 'details.xCoord', 'details.yCoord', 'situationCode', 'details.eventOwnerTeamId', 'homeTeamId', 'awayTeamId', 'homeTeamName', 'awayTeamName']]
-
-    game_data = pd.DataFrame(columns=features_set)
-    game_data_events = all_games_events_to_df(dir_path, features_set)
-    game_data_events.columns= features_set
-
-    game_data = pd.concat([game_data, game_data_events],ignore_index=True)
-    
-    return game_data
+        pass
 
 
 
 
-
-    def update_model_df_length(self):
-        self.model_df_length = self.game.shape[0]
-   
     def ping_game(self,file_path):
-        df_game_tidied = tidy_data(file_path)
-        df_game_features = feature_engineering(df_game_tidied)
-        last_event = df_game_features.iloc[-1]
-        self.game = df_game_features
-        self.update_model_df_length()
-        tracker = self.model_df_length
+        #df_game_tidied = tidy_data(file_path)
+        #df_game_features = feature_engineering(df_game_tidied)
+        #last_event = df_game_features.iloc[-1]
+        #self.game = df_game_features
+        #self.update_model_df_length()
+        #tracker = self.model_df_length
        
-        return df_game_features, last_event, tracker
+        #return df_game_features, last_event, tracker
+        pass
