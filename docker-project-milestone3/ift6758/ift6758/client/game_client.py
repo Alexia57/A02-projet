@@ -3,6 +3,7 @@ import requests
 import pandas as pd
 import logging
 import os
+import numpy
 
 class GameClient:
     def __init__(self):
