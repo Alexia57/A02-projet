@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 import logging
 import os
-import numpy
+import numpy as np
 
 class GameClient:
     def __init__(self):
@@ -35,7 +35,7 @@ class GameClient:
 #
     #    return file_path
 
-    def clean_a_game(df):
+    def clean_a_game(self, df):
         """
         json_path: path vers le fichier json
         clean et sauvegarde un df clean
@@ -77,7 +77,7 @@ class GameClient:
         final = d[['gameId', 'period', 'timeInPeriod', 'typeDescKey', 'homeTeamId', 'awayTeamId', 'details.eventOwnerTeamId', 'homeTeamName', 'awayTeamName', 'distanceToNet', 'relativeAngleToNet', 'filetVide', 'isGoal']]
         return final
 
-    def grab_a_game(game_id):
+    def grab_a_game(self, game_id):
         base_url = "https://api-web.nhle.com/v1/gamecenter/"
         url = f"{base_url}{game_id}/play-by-play/"
         data = []  # Stocker les données de tous les matchs
