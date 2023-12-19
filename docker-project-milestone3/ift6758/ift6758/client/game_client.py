@@ -10,7 +10,7 @@ class GameClient:
         self.tracker = 0
         self.game_data = None
         self.tracker = 0
-        #self.game_id = None
+        self.game_id = None
         #self.game = None
         #self.home_team = None
         #self.away_team = None
@@ -127,6 +127,9 @@ class GameClient:
         EN D'AUTRE TERME, la première utilisation devrait donner la même chose que df, la deuxième donne un df vide, puisque qu'il n'y aura pas de nouveaux events rajouté depuis le premier
 
         """
+        if game_id != self.game_id:
+            self.game_id = game_id
+            self.tracker = 0
         df = self.grab_a_game(game_id)
         last_event = df.iloc[-1]
         self.game = df
