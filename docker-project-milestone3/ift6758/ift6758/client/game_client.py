@@ -127,17 +127,35 @@ class GameClient:
         EN D'AUTRE TERME, la première utilisation devrait donner la même chose que df, la deuxième donne un df vide, puisque qu'il n'y aura pas de nouveaux events rajouté depuis le premier
 
         """
-        if game_id != self.game_id:
-            self.game_id = game_id
-            self.tracker = 0
-        df = self.grab_a_game(game_id)
-        last_event = df.iloc[-1]
-        self.game = df
-        dfToUpdate = df.iloc[self.tracker:, :]
-        self.update_model_df_length()
-        self.tracker = self.model_df_length
+        dfToUpdate = pd.DataFrame()  # Initialiser un dataframe vide
 
-        return (df, dfToUpdate)
+        if game_id != self.game_id:  # Si l'ID du jeu a changé
+            self.game_id = game_id
+            self.tracker = 0  # Réinitialiser le tracker si c'est un nouveau jeu
+            df = self.grab_a_game(game_id)  # Récupérer le jeu entier
+            if not df.empty:
+                # Retourner le dernier événement sous forme de DataFrame
+                last_event = df.iloc[[-1]]
+                self.game = df
+                dfToUpdate = df  # Retourner tout le df si c'est le premier appel
+            else:
+                # Si le jeu est vide, créer un DataFrame vide avec les mêmes colonnes que df
+                last_event = pd.DataFrame(columns=df.columns)
+            self.update_model_df_length()
+            self.tracker = self.model_df_length  # Mettre à jour le tracker pour les appels futurs
+        else:
+            df = self.game  # Utiliser le jeu déjà récupéré
+            if self.tracker < len(df):
+                dfToUpdate = df.iloc[self.tracker:, :]  # Extraire les nouveaux événements
+                # Retourner le dernier événement sous forme de DataFrame
+                last_event = dfToUpdate.iloc[[-1]] if not dfToUpdate.empty else pd.DataFrame(columns=df.columns)
+            else:
+                # Si aucun nouvel événement, last_event est un DataFrame vide avec les mêmes colonnes que df
+                last_event = pd.DataFrame(columns=df.columns)
+            self.update_model_df_length()
+            self.tracker = self.model_df_length  # Mettre à jour le tracker
+
+        return df, last_event, dfToUpdate
     
 if __name__ == '__main__':
     gc = GameClient()

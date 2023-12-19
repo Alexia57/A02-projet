@@ -8,12 +8,13 @@ logger = logging.getLogger(__name__)
 
 
 class ServingClient:
-    def __init__(self, ip: str = "0.0.0.0", port: int = 5000, features=None):
+    def __init__(self, ip: str = "0.0.0.0", port: int = 8000, features=None):
         self.base_url = f"http://{ip}:{port}"
         logger.info(f"Initializing client; base URL: {self.base_url}")
 
         if features is None:
-            features = ["distance"]
+            #features = ["distance"]
+            features = ["distanceToNet", "relativeAngleToNet"]
         self.features = features
 
         # any other potential initialization
@@ -30,14 +31,25 @@ class ServingClient:
 
         #raise NotImplementedError("TODO: implement this function")
 
+    
         try:
-            request = requests.post(f"{self.base_url}/predict", json=json.loads(X.to_json()))
-            logger.info(f"Predictions done successfully !")
-            return request.json()
+            # Ensure the DataFrame has a unique index
+            X = X.reset_index(drop=True)
+            # Convert the DataFrame to a JSON payload
+            #json_payload = json.loads(X.to_json(orient='records'))
+            
+            # Send the POST request with the JSON payload
+            #response = requests.post(f"{self.base_url}/predict", json=json_payload)
+            response = requests.post(f"{self.base_url}/predict", json=X.to_json())
+            if response.status_code == 200:
+                logger.info(f"Predictions done successfully !")
+                return response.json()
+            else:
+                logger.error(f"Prediction failed with status code {response.status_code}: {response.text}")
+                return {'status': 'error', 'message': response.text}
         except Exception as e:
-            print(e)
-            logger.info(f"Errors to generate predictions.")
-            return None
+            logger.error(f"Exception occurred: {e}")
+            return {'status': 'error', 'message': str(e)}
 
 
     def logs(self) -> dict:
