@@ -35,7 +35,7 @@ class GameClient:
 #
     #    return file_path
 
-    def cLean_a_game(df):
+    def clean_a_game(self, df):
         """
         json_path: path vers le fichier json
 
@@ -124,3 +124,8 @@ class GameClient:
         tracker = self.model_df_length
 
         return df, last_event, tracker
+    
+if __name__ == '__main__':
+    gc = GameClient()
+    print(gc.ping_game(game_id=2022030411)[0].head(5))
+    print("OY")
