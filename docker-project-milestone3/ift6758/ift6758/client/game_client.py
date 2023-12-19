@@ -35,30 +35,39 @@ class GameClient:
 #
     #    return file_path
 
-    def clean_a_game(self, df):
+    def cLean_a_game(df):
         """
         json_path: path vers le fichier json
+
         clean et sauvegarde un df clean
         """
 
         df['gameId'] = df.id
+        df['homeTeamLatestScore'] = pd.json_normalize(df['homeTeam']).score
+        df['awayTeamLatestScore'] = pd.json_normalize(df['awayTeam']).score
         df['homeTeamId'] = pd.json_normalize(df['homeTeam']).id
         df['awayTeamId'] = pd.json_normalize(df['awayTeam']).id
-        df['homeTeamName'] = pd.json_normalize(df['homeTeam']).abbrev
-        df['awayTeamName'] = pd.json_normalize(df['awayTeam']).abbrev
+        df['homeTeamAbbrev'] = pd.json_normalize(df['homeTeam']).abbrev
+        df['awayTeamAbbrev'] = pd.json_normalize(df['awayTeam']).abbrev
+        df['homeTeamName'] = pd.json_normalize(df['homeTeam'])['name.default']
+        df['awayTeamName'] = pd.json_normalize(df['awayTeam'])['name.default']
 
-        dp = df.iloc[:,[-1, -2, -3, -4, -5, -6]]
+        dp = df.iloc[:,[-1, -2, -3, -4, -5, -6, -7, -8, -9, -10]]
         dp = dp.explode('plays')
 
         d = pd.json_normalize(dp.plays).set_index(dp.index)
+        d['homeTeamLatestScore'] = dp['homeTeamLatestScore']
+        d['awayTeamLatestScore'] = dp['awayTeamLatestScore']
         d['homeTeamId'] = dp['homeTeamId']
         d['awayTeamId'] = dp['awayTeamId']
         d['gameId'] = dp['gameId']
+        d['homeTeamAbbrev'] = dp['homeTeamAbbrev']
+        d['awayTeamAbbrev'] = dp['awayTeamAbbrev']
         d['homeTeamName'] = dp['homeTeamName']
         d['awayTeamName'] = dp['awayTeamName']
 
         d = d[d['details.shotType'].notna()]
-        d = d[['gameId', 'period', 'timeInPeriod', 'typeDescKey', 'details.xCoord', 'details.yCoord', 'situationCode', 'details.eventOwnerTeamId', 'homeTeamId', 'awayTeamId', 'homeTeamName', 'awayTeamName']]
+        d = d[['gameId', 'period', 'timeInPeriod', 'timeRemaining', 'typeDescKey', 'details.xCoord', 'details.yCoord', 'situationCode', 'details.eventOwnerTeamId', 'homeTeamLatestScore', 'awayTeamLatestScore', 'homeTeamId', 'awayTeamId', 'homeTeamName', 'awayTeamName', 'homeTeamAbbrev', 'awayTeamAbbrev']]
 
         d['details.eventOwnerTeamId']=d['details.eventOwnerTeamId'].astype(int)
 
@@ -74,7 +83,8 @@ class GameClient:
         d['isGoal'] = (d['typeDescKey']=='goal').astype(int)
         d['isHome'] = d['details.eventOwnerTeamId']==d['homeTeamId']
         d['filetVide'] = ((((d['situationCode'].astype(int)*d['isHome'])//1000+(d['situationCode'].astype(int)*(d['isHome']-1)*(-1))%10)-1)*(-1))
-        final = d[['gameId', 'period', 'timeInPeriod', 'typeDescKey', 'homeTeamId', 'awayTeamId', 'details.eventOwnerTeamId', 'homeTeamName', 'awayTeamName', 'distanceToNet', 'relativeAngleToNet', 'filetVide', 'isGoal']]
+        d['time_left'] = d['timeRemaining']
+        final = d[['gameId', 'homeTeamLatestScore', 'awayTeamLatestScore', 'period', 'time_left', 'timeInPeriod', 'typeDescKey', 'homeTeamId', 'awayTeamId', 'details.eventOwnerTeamId', 'homeTeamName', 'awayTeamName', 'homeTeamAbbrev', 'awayTeamAbbrev', 'distanceToNet', 'relativeAngleToNet', 'filetVide', 'isGoal']]
         return final
 
     def grab_a_game(self, game_id):
