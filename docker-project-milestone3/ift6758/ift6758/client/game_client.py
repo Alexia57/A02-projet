@@ -9,6 +9,7 @@ class GameClient:
     def __init__(self):
         self.tracker = 0
         self.game_data = None
+        self.tracker = 0
         #self.game_id = None
         #self.game = None
         #self.home_team = None
@@ -117,15 +118,25 @@ class GameClient:
 
 
     def ping_game(self,game_id):
+        """
+        game_id: le id du game voulu
+
+        return: (df, dfToUpdate)
+        df: le df de la game en entier
+        dfToUpdate: le df contenant UNIQUEMENT les évènements des nouveaux évènement
+        EN D'AUTRE TERME, la première utilisation devrait donner la même chose que df, la deuxième donne un df vide, puisque qu'il n'y aura pas de nouveaux events rajouté depuis le premier
+
+        """
         df = self.grab_a_game(game_id)
         last_event = df.iloc[-1]
         self.game = df
+        dfToUpdate = df.iloc[self.tracker:, :]
         self.update_model_df_length()
-        tracker = self.model_df_length
+        self.tracker = self.model_df_length
 
-        return df, last_event, tracker
+        return (df, dfToUpdate)
     
 if __name__ == '__main__':
     gc = GameClient()
-    print(gc.ping_game(game_id=2022030411)[0].head(5))
-    print("OY")
+    print(gc.ping_game(game_id=2022030411)[1])
+    print(gc.model_df_length)
