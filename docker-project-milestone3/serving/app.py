@@ -201,7 +201,7 @@ def predict():
     #raise NotImplementedError("TODO: implement this enpdoint")
 
     try:
-        X = pd.DataFrame(json)[get_feature(model_name)]
+        X = pd.read_json(json)[get_feature(model_name)]
         response = {"status": "success", "predictions": model.predict_proba(X)[:,1]}
         app.logger.info(f'Predictions : {response}.')
     except:
