@@ -68,12 +68,25 @@ with st.container():
         else:
             st.error("Prediction failed!")
 
-        print(prediction_response)
+        #print(prediction_response)
+        predictions_df = pd.read_csv('out.csv')
+        sum_predictions = predictions_df.iloc[:, -1].sum()
+        print(sum_predictions)
+
+        # Reset the index for both DataFrames without keeping the old index
+        features_for_prediction = features_for_prediction.reset_index(drop=True)
+        predictions_df = predictions_df.reset_index(drop=True)
+
+        # Concatenate the DataFrames by columns (side by side)
+        result_df = pd.concat([features_for_prediction, predictions_df.iloc[:, -1].rename('Model output')], axis=1)
+
+
+        print(result_df)
 
         home_team_name = last_event["homeTeamName"][0]
         away_team_name = last_event["awayTeamName"][0]
-        home_team_xG = 3.2  # prédiction
-        away_team_xG = 1.4  # prédiction
+        home_team_xG = round(sum_predictions, 2)  # prédiction
+        away_team_xG =  round(sum_predictions, 2)  # prédiction
         current_period = last_event["period"][0]
         time_left = last_event["time_left"][0] 
         current_score_home = last_event["homeTeamLatestScore"][0]
@@ -83,10 +96,11 @@ with st.container():
         st.caption(f"Period {current_period} - {time_left} left")
 
         col1, col2 = st.columns(2)
-        col1.metric(f"{home_team_name} xG (actual)", home_team_xG, f"{home_team_xG - current_score_home}")
-        col2.metric(f"{away_team_name} xG (actual)", away_team_xG, f"{away_team_xG - current_score_away}")
+        col1.metric(f"{home_team_name} xG (actual)", (f"{home_team_xG} ({current_score_home})"), f"{home_team_xG - current_score_home}")
+        col2.metric(f"{away_team_name} xG (actual)", (f"{away_team_xG} ({current_score_away})"), f"{away_team_xG - current_score_away}")
 
-
+        st.subheader("Data used for predictions (and predictions)")
+        st.table(result_df)
 
     
 
