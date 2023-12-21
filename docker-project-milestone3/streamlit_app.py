@@ -110,24 +110,27 @@ with st.container():
     
 
     # bonus a completer
-    team_stats_data = {
-        'Team': ['Team A', 'Team B', 'Team C'],
-        'Goals Scored': [30, 25, 20],
-        'Goals Conceded': [15, 20, 25],
-        'Shooting Accuracy': [0.6, 0.5, 0.4]
-    }
+    if st.button('Ping Game'):
+    # Utiliser la méthode ping_game pour récupérer les données du jeu
+        df, last_event, df_to_update = gc.ping_game(game_id)
 
-    team_stats_df = pd.DataFrame(team_stats_data)
+        # Afficher les dernières données
+        st.subheader("Last Event:")
+        st.dataframe(last_event)
 
-    # Afficher les statistiques d'équipe
-    st.subheader('Statistiques d\'équipe')
-    st.dataframe(team_stats_df)
+        # Afficher les données complètes
+        st.subheader("Full Game Data:")
+        st.dataframe(df)
 
-    # Tracer un graphique pour illustrer les statistiques
-    fig, ax = plt.subplots()
-    team_stats_df.plot(kind='bar', x='Team', y=['Goals Scored', 'Goals Conceded'], ax=ax)
-    ax.set_ylabel('Nombre de Buts')
-    ax.set_title('Comparaison des Buts Marqués et Encaissés par Équipe')
+        # Afficher uniquement les nouvelles données
+        st.subheader("New Events:")
+        st.dataframe(df_to_update)
 
-    # Afficher le graphique dans l'application
-    st.pyplot(fig)
+        # Visualisation : Exemple de tracé d'un graphique simple
+        st.subheader("Example Chart:")
+        
+        # Groupement des données par période et calcul de la somme des buts par période
+        goals_by_period = df.groupby('period')['isGoal'].sum()
+
+        # Tracé d'un graphique à barres
+        st.bar_chart(goals_by_period)
