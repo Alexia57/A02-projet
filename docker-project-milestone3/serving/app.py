@@ -17,6 +17,7 @@ import pandas as pd
 import joblib
 from comet_ml import API
 import pickle
+from io import StringIO
 
 from dotenv import load_dotenv
 load_dotenv(r"../../notebooks/.env")
@@ -208,7 +209,7 @@ def predict():
 
     try:
         # Attempt to make predictions
-        X = pd.read_json(json)[get_feature(model_name)]
+        X = pd.read_json(StringIO(json))[get_feature(model_name)]
         response = {"status": "success", "predictions": model.predict_proba(X)[:,1]}
         app.logger.info(f'Predictions : {response}.')
     except:
