@@ -45,13 +45,26 @@ WORKDIR /code
 
 
 # TODO: add code, optionally a default model if you want 
-
+ADD . /code
 
 # TODO: install libs
 
+COPY ./ift6758 /code/ift6758
+RUN pip install -e /code/ift6758
+COPY ./ift6758/requirements.txt /code/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
 
 # TODO: expose ports (or do this in docker-compose)
+EXPOSE 8000
 
+# Set environment variables
+ENV STREAMLIT_FILE=streamlit_app.py
+ENV STREAMLIT_PORT=8000
+ENV STREAMLIT_IP=0.0.0.0
 
 # TODO: specify default command - this is not required because you can always specify the command
 # either with the docker run command or in the docker-compose file
+
+# Démarrer l'application Streamlit
+CMD ["streamlit", "run", "{STREAMLIT_FILE}", "--server.port", "{STREAMLIT_PORT}", "--server.address", "{STREAMLIT_IP}"]

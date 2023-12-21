@@ -103,3 +103,29 @@ with st.container():
     # TODO: Add data used for predictions
     pass
 
+
+with st.container():
+    
+
+    # bonus a completer
+    team_stats_data = {
+        'Team': ['Team A', 'Team B', 'Team C'],
+        'Goals Scored': [30, 25, 20],
+        'Goals Conceded': [15, 20, 25],
+        'Shooting Accuracy': [0.6, 0.5, 0.4]
+    }
+
+    team_stats_df = pd.DataFrame(team_stats_data)
+
+    # Afficher les statistiques d'équipe
+    st.subheader('Statistiques d\'équipe')
+    st.dataframe(team_stats_df)
+
+    # Tracer un graphique pour illustrer les statistiques
+    fig, ax = plt.subplots()
+    team_stats_df.plot(kind='bar', x='Team', y=['Goals Scored', 'Goals Conceded'], ax=ax)
+    ax.set_ylabel('Nombre de Buts')
+    ax.set_title('Comparaison des Buts Marqués et Encaissés par Équipe')
+
+    # Afficher le graphique dans l'application
+    st.pyplot(fig)
