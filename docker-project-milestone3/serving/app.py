@@ -30,6 +30,7 @@ LOG_FILE = os.environ.get("FLASK_LOG", "flask.log")
 
 app = Flask(__name__)
 
+# Attempt to load the Comet API key
 try :
     LOG_FILE = os.environ.get("FLASK_LOG", "flask.log")
     COMET_API_KEY = os.environ.get("COMET_API_KEY")
@@ -39,7 +40,7 @@ except Exception as e:
     print(e)
     app.logger.info("Error while loading api key.")
 
-
+# Function to determine features based on the selected model
 def get_feature(model):
     if model == 'logistic_distance':
         feature = ['distanceToNet']
@@ -47,8 +48,10 @@ def get_feature(model):
         feature = ['distanceToNet', 'relativeAngleToNet']
     return feature
 
+# Add the 'ift6758' directory to the system path
 sys.path.append('../ift6758')
 
+# Function to download a model from the Comet registry
 def download_model(workspace, model_name, version):
     
     model_complete_name = f'{model_name}_{version}'
@@ -67,6 +70,7 @@ def download_model(workspace, model_name, version):
 
     return model 
 
+# Function to update the model name with the version
 def add_version_to_name(model_name):
     if model_name == 'reg_logistique-distance_1.0.0':
         os.rename('logistic_distance.pkl', f'{model_name}.pkl')
@@ -74,8 +78,7 @@ def add_version_to_name(model_name):
     if model_name == 'reg_logistique_dist_angle_1.0.0':
         os.rename('logistic_distance_angle.pkl', f'{model_name}.pkl')
 
-#@app.before_first_request
-#def before_first_request():
+# Initialization before the first request
 with app.app_context():
     """
     Hook to handle any initialization before the first request (e.g. load model,
@@ -102,7 +105,7 @@ with app.app_context():
         model = download_model(json['workspace'], json['model'], json['version'])
         model_name = f'{json["model"]}_{json["version"]}'
 
-
+# Endpoint to get logs
 @app.route("/logs", methods=["GET"])
 def logs():
     """Reads data from the log file and returns them as the response"""
@@ -114,7 +117,7 @@ def logs():
 
     return jsonify(response)  # response must be json serializable!
 
-
+# Endpoint to download a model from the Comet registry
 @app.route("/download_registry_model", methods=["POST"])
 def download_registry_model():
     """
@@ -160,10 +163,12 @@ def download_registry_model():
     
 
     try : 
+        # Try to download the model
         model = download_model(json["workspace"],json["model"],json["version"])
         response = {"status": "success", "message": f"Model {model_name} downloaded successfully !"}
         app.logger.info(f'Model {model_name} downloaded successfully !')
     except Exception as e:
+        # Handle the case when model download fails
         response = {"status": "error", "message": f"Failed to download model {model_name}."}
         model_name = current_model
         app.logger.info(f'Failed to download model {model_name}. We keep the model {current_model}.')
@@ -186,6 +191,7 @@ def download_registry_model():
     return jsonify(response)  # response must be json serializable!
 
 
+# Endpoint to make predictions
 @app.route("/predict", methods=["POST"])
 def predict():
     """
@@ -201,15 +207,18 @@ def predict():
     #raise NotImplementedError("TODO: implement this enpdoint")
 
     try:
+        # Attempt to make predictions
         X = pd.read_json(json)[get_feature(model_name)]
         response = {"status": "success", "predictions": model.predict_proba(X)[:,1]}
         app.logger.info(f'Predictions : {response}.')
     except:
+        # Handle the case when prediction fails
         response = {"status": "failure", "predictions": None}
         app.logger.warning(f'Unable to calcul predictions.')
     
     app.logger.info(response)
     return jsonify(response)  # response must be json serializable!
 
+# Run the Flask app
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8000, debug=True)
