@@ -5,6 +5,8 @@ import json
 import ift6758
 import requests
 
+import matplotlib.pyplot as plt
+
 import sys
 #sys.path.append('/Users/canelle/Documents/Automne_2023/Science_données/Milestone2/A02-projet/docker-project-milestone3/ift6758')
 
