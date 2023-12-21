@@ -51,19 +51,13 @@ with st.container():
         # Utilisez la méthode ping_game pour récupérer les données du jeu
         df , last_event, _ = gc.ping_game(game_id)
 
-        print(last_event.columns)
-        print(last_event)
-
         # Préparer les données pour la prédiction
         features_for_prediction = df[sc.features] 
-        print(features_for_prediction)
 
         # Appeler la méthode predict
         prediction_response = sc.predict(features_for_prediction)
 
         if prediction_response.get('status') == 'success':
-            #predictions = prediction_response['predictions']
-            # Traiter les prédictions ici...
             st.success("Prediction successful!")
         else:
             st.error("Prediction failed!")
@@ -71,7 +65,6 @@ with st.container():
         #print(prediction_response)
         predictions_df = pd.read_csv('out.csv')
         sum_predictions = predictions_df.iloc[:, -1].sum()
-        print(sum_predictions)
 
         # Reset the index for both DataFrames without keeping the old index
         features_for_prediction = features_for_prediction.reset_index(drop=True)
@@ -79,9 +72,6 @@ with st.container():
 
         # Concatenate the DataFrames by columns (side by side)
         result_df = pd.concat([features_for_prediction, predictions_df.iloc[:, -1].rename('Model output')], axis=1)
-
-
-        print(result_df)
 
         home_team_name = last_event["homeTeamName"][0]
         away_team_name = last_event["awayTeamName"][0]
