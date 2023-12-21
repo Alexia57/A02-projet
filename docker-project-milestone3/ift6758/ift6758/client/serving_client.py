@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class ServingClient:
-    def __init__(self, ip: str = "0.0.0.0", port: int = 8000, features=None):
+    def __init__(self, ip: str = "localhost", port: int = 8000, features=None):
         self.base_url = f"http://{ip}:{port}"
         logger.info(f"Initializing client; base URL: {self.base_url}")
 
@@ -46,10 +46,10 @@ class ServingClient:
                 return response.json()
             else:
                 logger.error(f"Prediction failed with status code {response.status_code}: {response.text}")
-                return {'status': 'error', 'message': response.text}
+                return {'status': 'error', 'MMessage': response.text}
         except Exception as e:
             logger.error(f"Exception occurred: {e}")
-            return {'status': 'error', 'message': str(e)}
+            return {'status': 'error', 'MMMessage': str(e)}
 
 
     def logs(self) -> dict:
@@ -89,43 +89,34 @@ class ServingClient:
 
         return request.json()
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 if __name__ == '__main__':
 
-    # Create an instance of ServingClient
-    sc = ServingClient()
-
-    workspace = "ift6758-a02"
-    model_name = 'logistic_distance_angle'
-    version = "1.0.0"
-
-    # Call the method you want to test
-    response = sc.download_registry_model(workspace=workspace, model=model_name, version='1.0.0')
-    
-    if response.get('status') == 'success':
-        print(f'Model {model} version {version} downloaded successfully!')
-    else:
-        print(f"Failed to download model {model} version {version}.")
-
-    from game_client import GameClient
-    gc = GameClient()
-    game_id = 2022030411
-    df , last_event, _ = gc.ping_game(game_id)
-
-    # Préparer les données pour la prédiction
-    features_for_prediction = df[sc.features] 
-    print(features_for_prediction)
-
-    # Appeler la méthode predict
-    prediction_response = sc.predict(features_for_prediction)
-
-    print(prediction_response)
-    '''
     from pathlib import Path
     from comet_ml import API
     import os
     import pickle
     import sklearn
-    
+    from io import StringIO
+    from game_client import GameClient
+
+    #importe localement les fonctions de app.py pour tester
     def add_version_to_name(model_name):
         if model_name == 'reg_logistique-distance_1.0.0':
             os.rename('logistic_distance.pkl', f'{model_name}.pkl')
@@ -149,6 +140,7 @@ if __name__ == '__main__':
             print(f'Model {model_complete_name} already downloaded.')
 
         return model 
+    
     def get_feature(model):
         if model == 'logistic_distance':
             feature = ['distanceToNet']
@@ -156,17 +148,24 @@ if __name__ == '__main__':
             feature = ['distanceToNet', 'relativeAngleToNet']
         return feature
     
+    workspace = "ift6758-a02"
+    model_name = 'logistic_distance'
+    model = 'reg_logistique-distance'
+    version = "1.0.0"
+    game_id = 2021020329
+
+    #crée le game client pour obtenir la partie
+    gc = GameClient()
+    df , _, _ = gc.ping_game(game_id)
+
+    # Préparer les données pour la prédiction
+    features_for_prediction = df[['distanceToNet']] 
     features_for_prediction = features_for_prediction.reset_index(drop=True)
-    print(features_for_prediction)
-    print("OYYYYYYYYYYYYYYYYYYYYYYYYYYY")
     X = features_for_prediction.to_json()
-    print(X)
-    Y = pd.read_json(X)[get_feature(model_name)]
+    Y = pd.read_json(StringIO(X))[['distanceToNet']]
+    
+
+    # Appeler la méthode predict
     model = download_model(workspace,model,version)
-    print(model.predict_proba(features_for_prediction)[:,1])
-
-    #X = data
-    Y = pd.read_json(X)[get_feature(model_name)]
-    print(model.predict_proba(features_for_prediction))
-    '''
-
+    pred = model.predict_proba(features_for_prediction)[:,1]
+    print(pred)
