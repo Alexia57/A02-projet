@@ -6,6 +6,9 @@
 *.json
 *.csv
 
+# Except for out.csv
+!out.csv
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
