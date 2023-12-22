@@ -6,7 +6,7 @@ import ift6758
 import requests
 
 import matplotlib.pyplot as plt
-import plotly.express as px
+#import plotly.express as px
 
 import sys
 #sys.path.append('/Users/canelle/Documents/Automne_2023/Science_données/Milestone2/A02-projet/docker-project-milestone3/ift6758')
@@ -60,7 +60,7 @@ with st.container():
         # Appeler la méthode predict
         prediction_response = sc.predict(features_for_prediction)
 
-        if prediction_response.get('status') == 'success':
+        if prediction_response.get('status') == 200:
             st.success("Prediction successful!")
         else:
             st.error("Prediction failed!")
@@ -102,62 +102,3 @@ with st.container():
     pass
         
 
-with st.container():
-    # TODO: Add data used for predictions
-    st.title("Data used for predictions")
-    if st.button('Ping Game'):
-    # Utilisez la méthode grab_a_game pour récupérer les données du jeu
-        game_data = gc.grab_a_game(game_id)
-        print(game_data)
-        st.subheader("Game Data")
-        st.dataframe(game_data)
-
-
-with st.container():
-    
-
-    # bonus a completer
-    if st.button('Ping Game'):
-    # Utiliser la méthode ping_game pour récupérer les données du jeu
-        df, last_event, df_to_update = gc.ping_game(game_id)
-
-        # Afficher les dernières données
-        st.subheader("Last Event:")
-        st.dataframe(last_event)
-
-        # Afficher les données complètes
-        st.subheader("Full Game Data:")
-        st.dataframe(df)
-
-        # Afficher uniquement les nouvelles données
-        st.subheader("New Events:")
-        st.dataframe(df_to_update)
-
-        # Visualisation : Exemple de tracé d'un graphique simple
-        st.subheader("Example Chart:")
-        
-        # Groupement des données par période et calcul de la somme des buts par période
-        goals_by_period = df.groupby('period')['isGoal'].sum()
-
-        # Tracé d'un graphique à barres
-        st.bar_chart(goals_by_period)
-
-
-
-
-with st.container():
-    if st.button('Ping Game'):
-    # Utiliser la méthode ping_game pour récupérer les données du jeu
-        df, _, _ = gc.ping_game(game_id)
-
-        # Carte de chaleur pour la répartition des tirs au but
-        st.subheader("Shot Distribution Heatmap:")
-        
-        # Utilisation de Plotly Express pour créer une carte de chaleur
-        fig = px.scatter(df, x='details.xCoord', y='details.yCoord', color='isGoal', size='isGoal',
-                        hover_data=['details.xCoord', 'details.yCoord', 'typeDescKey'],
-                        labels={'details.xCoord': 'X Coordinate', 'details.yCoord': 'Y Coordinate'},
-                        title='Shot Distribution Heatmap')
-
-        # Afficher la carte de chaleur
-        st.plotly_chart(fig)
